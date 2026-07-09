@@ -6,7 +6,9 @@ const icons={
   moka:"icons/moka-pot.png",
   flair:"icons/flair-neo-flex.png",
   sage:"icons/sage-precision-brewer.png",
-  oxo:"icons/oxo-rapid-brewer.png"
+  oxo:"icons/oxo-rapid-brewer.png",
+  hoop:"icons/ceado-hoop.png",
+  zero:"icons/trinity-zeropress.png"
 };
 
 const methods={
@@ -59,5 +61,15 @@ const methods={
       soup:{label:'Soup method',defaultAmount:250,presets:[200,250,300],ratio:16.5,grind:6.0,type:'Medium',roastAdjust:true,steps:['Use medium grind.','Add all water and coffee together.','Let it steep like a full immersion brew.','Filter gently and adjust by taste next time.']},
       cold:{label:'Cold brew',defaultAmount:300,presets:[200,300,400],ratio:8,grind:9.75,type:'Coarse',roastAdjust:false,steps:['Use coarse grind.','Wet grounds evenly.','Steep cold for a longer extraction.','Dilute concentrate to taste if needed.']}
     }
+  },
+  hoop:{
+    icon:'hoop',name:'Ceado Hoop',hint:'Flat-bed pour-over. Even, forgiving extraction \u2014 suits fruity filter roasts.',
+    defaultAmount:350,presets:[250,350,500],ratio:16.5,grind:6.0,type:'Medium',roastAdjust:true,
+    steps:['Rinse the basket filter and level it.','Bloom with 3\u00d7 coffee weight for 40 sec.','Pour in 2\u20133 slow, even spirals \u2014 keep the bed level.','Aim for a flat bed at the end; about 3:00\u20133:45 total.']
+  },
+  zero:{
+    icon:'zero',name:'Trinity ZeroPress',hint:'Compact press immersion. Small, punchy cups \u2014 great starting point below.',
+    defaultAmount:150,presets:[120,150,200],ratio:14,grind:5.0,type:'Medium fine',roastAdjust:true,
+    steps:['Add coffee, then water; give one gentle stir.','Steep 2:00\u20132:30.','Press slowly and steadily for about 30 sec.','Muddy cup: go coarser. Weak: finer or steep longer.']
   }
 };
