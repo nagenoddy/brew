@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f7f3ec" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <title>BrewGuide</title>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+<div class="app">
+  <div class="top">
+    <div class="brand">
+      <span class="brandMark">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 12h15v6a7 7 0 0 1-7 7h-1a7 7 0 0 1-7-7z"/>
+          <path d="M23 14h2.5a3.5 3.5 0 0 1 0 7H23"/>
+          <path d="M10 8c0-2 2-2 2-4"/>
+          <path d="M16 8c0-2 2-2 2-4"/>
+          <path d="M8 27h16"/>
+        </svg>
+      </span>
+      BrewGuide
+    </div>
+  </div>
+
+  <section id="home" class="screen active">
+    <div class="hero">
+      <div class="eyebrow">Morning workflow</div>
+      <div class="h1">What are we brewing today?</div>
+      <div class="sub">Tap a brewer. Then adjust the liquid amount, roast, and starting Opus setting.</div>
+    </div>
+    <div class="grid" id="methods"></div>
+  </section>
+
+  <section id="calc" class="screen">
+    <button class="back" onclick="show('home')">‹ Brewers</button>
+
+    <div class="card">
+      <div class="resultTitle">
+        <div class="recipeIcon" id="calcIcon"></div>
+        <h2 id="calcName"></h2>
+      </div>
+      <p class="sub" id="calcHint"></p>
+    </div>
+
+    <div class="card optionCard" id="variantCard">
+      <div class="label" id="variantLabel">Brew style</div>
+      <div class="seg" id="variantButtons"></div>
+    </div>
+
+    <div class="card">
+      <div class="label">How much brewed coffee / liquid do you want?</div>
+      <div class="amountrow">
+        <input id="amount" class="input" type="number" inputmode="decimal" value="350">
+        <div class="unit">g/ml</div>
+      </div>
+      <div class="presetRow" id="presetRow"></div>
+    </div>
+
+    <div class="card">
+      <div class="label">Roast adjustment</div>
+      <div class="seg">
+        <button id="rLight" onclick="setRoast('light')">Light</button>
+        <button id="rMed" class="on" onclick="setRoast('medium')">Medium</button>
+        <button id="rDark" onclick="setRoast('dark')">Dark</button>
+      </div>
+    </div>
+
+    <button class="btn" onclick="calculate()">Calculate</button>
+    <button class="btn secondary" onclick="show('home')">Choose another brewer</button>
+  </section>
+
+  <section id="result" class="screen">
+    <button class="back" onclick="show('calc')">‹ Edit recipe</button>
+
+    <div class="card">
+      <div class="resultTitle">
+        <div class="bigIcon" id="resIcon"></div>
+        <h2 id="resName"></h2>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><b id="coffeeOut">—</b><span>Coffee</span></div>
+        <div class="stat"><b id="waterOut">—</b><span>Water</span></div>
+      </div>
+
+      <div class="opus">
+        <div class="opusTop">
+          <div>
+            <span>Fellow Opus main dial</span>
+            <b id="grindOut">—</b>
+          </div>
+          <div class="type" id="grindType">—</div>
+        </div>
+
+        <div class="scale" id="opusScale"><div class="rail"></div></div>
+
+        <div class="quarterPanel">
+          <div class="quarterLabel">Interim clicks</div>
+          <div class="quarterDots" id="quarterDots"></div>
+
+          <div class="micro">
+            <div>Micro adjustment (internal)<small>0 = centred</small></div>
+            <div id="microOut">0</div>
+          </div>
+        </div>
+      </div>
+
+      <p class="tiny" id="ratioOut"></p>
+    </div>
+
+    <div class="card">
+      <div class="label">Brew guide</div>
+      <div class="steps" id="stepsOut"></div>
+    </div>
+
+    <button class="btn" onclick="startTimer()">▶ Simple brew timer</button>
+    <button class="btn secondary" onclick="saveFav()">Save as favourite</button>
+  </section>
+
+  <section id="timer" class="screen">
+    <button class="back" onclick="show('result')">‹ Recipe</button>
+    <div class="card">
+      <div class="eyebrow">Brew timer</div>
+      <div class="h1" id="timerMethod">Ready?</div>
+      <div class="timer" id="clock">00:00</div>
+      <button class="btn" id="timerBtn" onclick="toggleTimer()">Start</button>
+      <button class="btn secondary" onclick="resetTimer()">Reset</button>
+      <p class="tiny">Simple count-up timer. Follow the brew guide above.</p>
+    </div>
+  </section>
+
+  <div class="footer">Starting points only. Dial in by taste: sour → one quarter finer; bitter / ashy → one quarter coarser.</div>
+</div>
+
+<script src="recipes.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
