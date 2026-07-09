@@ -118,6 +118,21 @@ function adjGrind(g){
   return Math.max(1,Math.min(11,quarter(g+a)));
 }
 
+function grindForVolume(m, liquid){
+  if(!m.grindCurve) return m.grind;
+  const c=[...m.grindCurve].sort((a,b)=>a[0]-b[0]);
+  let g;
+  if(liquid<=c[0][0]) g=c[0][1];
+  else if(liquid>=c[c.length-1][0]) g=c[c.length-1][1];
+  else{
+    for(let j=0;j<c.length-1;j++){
+      const [x1,y1]=c[j],[x2,y2]=c[j+1];
+      if(liquid>=x1&&liquid<=x2){ g=y1+(y2-y1)*(liquid-x1)/(x2-x1); break; }
+    }
+  }
+  return Math.round(g*4)/4;
+}
+
 function quarterIndex(g){
   return Math.round((quarter(g)-Math.floor(quarter(g)))*4);
 }
@@ -180,7 +195,7 @@ function calculate(){
     water=coffee*m.ratio;
   }
 
-  const grind=adjGrind(m.grind);
+  const grind=adjGrind(grindForVolume(m, liquid));
   last={m,liquid,coffee,water,grind};
 
   resIcon.innerHTML=iconImg(base.icon,base.name);
@@ -205,11 +220,6 @@ function calculate(){
 
   localStorage.setItem('brewguide-last',JSON.stringify({current,roast,amount:amount.value,currentVariant,last}));
   show('result');
-}
-
-function saveFav(){
-  localStorage.setItem('brewguide-favourite',JSON.stringify(last));
-  alert('Saved on this phone.');
 }
 
 function startTimer(){

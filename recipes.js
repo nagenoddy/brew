@@ -47,8 +47,8 @@ const methods={
     variantLabel:'Filter / process',
     defaultVariant:'cone',
     variants:{
-      cone:{label:'Cone insert',defaultAmount:500,presets:[350,500,750],ratio:16.7,grind:6.75,type:'Medium',roastAdjust:true,steps:['Use the cone basket insert.','Rinse filter and add grounds.','Use Gold/Auto mode as default.','For 350 ml use slightly finer; for 750 ml use slightly coarser.']},
-      flat:{label:'Flat bottom',defaultAmount:1000,presets:[750,1000,1250],ratio:16.7,grind:7.0,type:'Medium',roastAdjust:true,steps:['Use the flat bottom basket.','Rinse filter and add grounds.','Best for larger, even batch brews.','If it tastes hollow, try one quarter finer next time.']},
+      cone:{label:'Cone insert',defaultAmount:500,presets:[350,500,750],ratio:16.7,grind:6.5,grindCurve:[[350,6.25],[500,6.5],[750,6.75]],type:'Medium',roastAdjust:true,steps:['Use the cone basket insert.','Rinse filter and add grounds.','Use Gold/Auto mode as default.','Grind adjusts automatically with batch size.']},
+      flat:{label:'Flat bottom',defaultAmount:1000,presets:[750,1000,1250],ratio:16.7,grind:7.0,grindCurve:[[750,6.75],[1000,7.0],[1250,7.25]],type:'Medium',roastAdjust:true,steps:['Use the flat bottom basket.','Rinse filter and add grounds.','Best for larger, even batch brews.','If it tastes hollow, try one quarter finer next time.']},
       cold:{label:'Cold brew',defaultAmount:750,presets:[500,750,1000],ratio:8,grind:9.0,type:'Coarse',roastAdjust:false,steps:['Use the cold brew setting.','Use coarse grind and cool water.','Stir grounds to wet evenly.','Dilute concentrate to taste if needed.']}
     }
   },
