@@ -138,13 +138,15 @@ function quarterIndex(g){
 }
 
 function dialMarkup(){
-  const cx=170,cy=150,R=118;
+  const cx=170,cy=146,R=130;
   const pt=(v,r)=>{
     const a=(150+240*(v-1)/10)*Math.PI/180;
     return [cx+r*Math.cos(a), cy-r*Math.sin(a)];
   };
   const f=n=>n.toFixed(1);
   let s='';
+  s+=`<text x="${cx}" y="42" text-anchor="middle" font-size="10" fill="#f7f3ec" fill-opacity=".55" style="text-transform:uppercase;letter-spacing:.14em">Fellow Opus \u00b7 main dial</text>`;
+  s+=`<text id="grindType" x="${cx}" y="62" text-anchor="middle" font-size="10.5" font-weight="700" fill="#d7a86e" style="text-transform:uppercase;letter-spacing:.14em">\u2014</text>`;
   const [ax,ay]=pt(1,R),[bx,by]=pt(11,R);
   s+=`<path d="M ${f(ax)} ${f(ay)} A ${R} ${R} 0 1 0 ${f(bx)} ${f(by)}" fill="none" stroke="#f7f3ec" stroke-opacity=".3" stroke-width="3" stroke-linecap="round"/>`;
   for(let i=1;i<=10;i++)for(let q=1;q<=3;q++){

@@ -324,34 +324,6 @@ button{cursor:pointer}
   margin:10px 0 14px;
 }
 
-.opusTop{
-  display:flex;
-  justify-content:space-between;
-  gap:12px;
-  align-items:flex-start;
-}
-
-.opus span{
-  display:block;
-  opacity:.74;
-  font-size:12px;
-  font-weight:950;
-  text-transform:uppercase;
-  letter-spacing:.09em;
-}
-
-.opus b{
-  font-size:47px;
-  letter-spacing:-.06em;
-  line-height:1;
-}
-
-.opus .type{
-  text-align:right;
-  font-weight:950;
-  opacity:.86;
-}
-
 .tiny{font-size:13px;color:var(--muted);line-height:1.35}
 
 .steps{display:flex;flex-direction:column;gap:10px}
@@ -528,6 +500,6 @@ button{cursor:pointer}
 .dialWrap svg{width:100%;display:block}
 
 #dialNeedle{
-  transform-origin:170px 150px;
+  transform-origin:170px 146px;
   transition:transform .7s cubic-bezier(.22,1,.36,1);
 }
