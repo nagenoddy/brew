@@ -222,6 +222,7 @@ function calculate(){
 
   fbSelected=new Set();
   renderFeedback();
+  renderCoach(grind, liquid);
   const logBtnEl=document.getElementById('logBtn');
   logBtnEl.textContent='Log this brew';
   logBtnEl.disabled=false;
@@ -258,6 +259,104 @@ function resetTimer(){
   sec=0;
   clock.textContent='00:00';
   timerBtn.textContent='Start';
+}
+
+/* ---------- coach ---------- */
+let coachSuggested=null;
+
+function getCoachSuggestion(calcGrind, liquid){
+  const vk=getConfig().variantKey||null;
+  const logs=loadLog().filter(r=>r.brewer===current&&(r.variant||null)===vk&&Array.isArray(r.feedback)&&r.feedback.length);
+  if(!logs.length)return null;
+  const lastB=logs[logs.length-1];
+  const f=new Set(lastB.feedback);
+  const faults=FEEDBACK.filter(x=>f.has(x)&&x!=='perfect');
+  const dateStr=new Date(lastB.ts).toLocaleDateString(undefined,{day:'numeric',month:'short'});
+  const ctx='Last brew ('+dateStr+', '+lastB.volume+'g)';
+
+  if(f.has('perfect')){
+    return {text:ctx+' was perfect at Opus '+formatGrind(lastB.grind)+'.',
+            reason:'Change nothing \u2014 repeat the recipe exactly.',confidence:'high',suggested:null};
+  }
+
+  const coarse=f.has('dry')||f.has('bitter')||f.has('muddy');
+  const fine=f.has('sour');
+  const weak=f.has('weak');
+
+  if(coarse&&fine){
+    return {text:ctx+' read both bitter and sour.',
+            reason:'Mixed signals usually mean uneven extraction \u2014 check pour technique and bed level before changing grind.',
+            confidence:'low',suggested:null};
+  }
+
+  let delta=0,reason='',conf='high';
+  if(coarse){
+    delta=0.25;
+    const muddyOnly=f.has('muddy')&&!f.has('bitter')&&!f.has('dry');
+    reason=muddyOnly
+      ?'Muddy cups usually mean excess fines \u2014 a coarser grind produces fewer.'
+      :'Dry / bitter points to over-extraction \u2014 coarser slows it down.';
+    if(muddyOnly)conf='medium';
+  }else if(fine){
+    delta=-0.25;
+    reason=weak
+      ?'Weak and sour together point to under-extraction \u2014 finer helps both.'
+      :'Sour usually means under-extraction \u2014 finer speeds it up.';
+  }else if(weak){
+    return {text:ctx+' was weak but balanced.',
+            reason:'That is a strength issue, not extraction \u2014 use about 10% more coffee at the same grind.',
+            confidence:'medium',suggested:null};
+  }else{
+    return null;
+  }
+
+  if(logs.length>=2){
+    const prev=logs[logs.length-2];
+    const pf=new Set(prev.feedback||[]);
+    const sameDir=delta>0?(pf.has('dry')||pf.has('bitter')||pf.has('muddy')):pf.has('sour');
+    if(sameDir&&prev.grind!==lastB.grind){
+      delta*=2;
+      reason+=' The same fault appeared twice despite an adjustment, so a bigger step is warranted.';
+    }
+  }
+
+  let suggested=Math.max(1,Math.min(11,quarter(lastB.grind+delta)));
+  if((delta>0&&calcGrind>=suggested)||(delta<0&&calcGrind<=suggested))return null;
+
+  if(lastB.volume&&liquid&&Math.abs(lastB.volume-liquid)/lastB.volume>0.25){
+    reason+=' Your last logged brew was a different batch size, so treat this as a starting point.';
+    if(conf==='high')conf='medium';
+  }
+
+  return {text:ctx+' was '+faults.join(' and ')+' at Opus '+formatGrind(lastB.grind)+'.',
+          reason:reason,confidence:conf,suggested:suggested};
+}
+
+function renderCoach(calcGrind, liquid){
+  const card=document.getElementById('coachCard');
+  const s=getCoachSuggestion(calcGrind, liquid);
+  coachSuggested=s&&s.suggested?s.suggested:null;
+  if(!s){card.style.display='none';return;}
+  document.getElementById('coachText').textContent=s.text;
+  document.getElementById('coachReason').textContent=s.reason
+    +(s.suggested?' Try Opus '+formatGrind(s.suggested)+'.':'');
+  document.getElementById('coachConf').textContent=s.confidence+' confidence';
+  const btn=document.getElementById('coachApply');
+  btn.style.display=s.suggested?'':'none';
+  btn.textContent='Apply '+(s.suggested?formatGrind(s.suggested):'');
+  btn.disabled=false;
+  card.style.display='';
+}
+
+function applyCoach(){
+  if(!coachSuggested||!last)return;
+  last.grind=coachSuggested;
+  grindOut.textContent=formatGrind(coachSuggested);
+  renderScale(coachSuggested);
+  renderQuarterDots(coachSuggested);
+  const btn=document.getElementById('coachApply');
+  btn.textContent='Applied \u2713';
+  btn.disabled=true;
 }
 
 /* ---------- brew log ---------- */

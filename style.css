@@ -588,3 +588,48 @@ button{cursor:pointer}
   text-align:center;
   padding:30px 10px;
 }
+
+
+/* ---- coach ---- */
+.coach{
+  border:1px solid rgba(215,168,110,.5);
+  background:rgba(215,168,110,.10);
+}
+
+.coachText{
+  margin:6px 0 2px;
+  font-size:15px;
+  font-weight:800;
+}
+
+.coachReason{
+  margin:4px 0 10px;
+  font-size:14px;
+  color:var(--muted);
+  line-height:1.45;
+}
+
+.coachRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.confChip{
+  font-size:12px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  padding:5px 11px;
+  border-radius:11px;
+  background:rgba(215,168,110,.22);
+  border:1px solid rgba(215,168,110,.4);
+}
+
+.btn.coachApply{
+  width:auto;
+  margin-top:0;
+  padding:11px 22px;
+  font-size:15px;
+}

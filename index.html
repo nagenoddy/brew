@@ -70,6 +70,16 @@
   <section id="result" class="screen">
     <button class="back" onclick="show('calc')">‹ Edit recipe</button>
 
+    <div class="card coach" id="coachCard" style="display:none">
+      <div class="label">Coach</div>
+      <p class="coachText" id="coachText"></p>
+      <p class="coachReason" id="coachReason"></p>
+      <div class="coachRow">
+        <span class="confChip" id="coachConf"></span>
+        <button class="btn coachApply" id="coachApply" onclick="applyCoach()">Apply</button>
+      </div>
+    </div>
+
     <div class="card">
       <div class="resultTitle">
         <div class="bigIcon" id="resIcon"></div>
