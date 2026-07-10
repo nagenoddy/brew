@@ -137,47 +137,56 @@ function quarterIndex(g){
   return Math.round((quarter(g)-Math.floor(quarter(g)))*4);
 }
 
-function renderQuarterDots(g){
-  const wrap=document.getElementById('quarterDots');
-  wrap.innerHTML='';
-  let idx=quarterIndex(g);
-  for(let i=0;i<4;i++){
-    const d=document.createElement('span');
-    d.className='qdot'+(i===idx?' on':'');
-    wrap.appendChild(d);
+function dialMarkup(){
+  const cx=170,cy=150,R=118;
+  const pt=(v,r)=>{
+    const a=(150+240*(v-1)/10)*Math.PI/180;
+    return [cx+r*Math.cos(a), cy-r*Math.sin(a)];
+  };
+  const f=n=>n.toFixed(1);
+  let s='';
+  const [ax,ay]=pt(1,R),[bx,by]=pt(11,R);
+  s+=`<path d="M ${f(ax)} ${f(ay)} A ${R} ${R} 0 1 0 ${f(bx)} ${f(by)}" fill="none" stroke="#f7f3ec" stroke-opacity=".3" stroke-width="3" stroke-linecap="round"/>`;
+  for(let i=1;i<=10;i++)for(let q=1;q<=3;q++){
+    const v=i+q/4,[x1,y1]=pt(v,R+4),[x2,y2]=pt(v,R-4);
+    s+=`<line x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}" stroke="#f7f3ec" stroke-opacity=".42" stroke-width="1.4"/>`;
   }
+  for(let i=1;i<=11;i++){
+    const [x1,y1]=pt(i,R+7),[x2,y2]=pt(i,R-7),[lx,ly]=pt(i,R-24);
+    s+=`<line x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}" stroke="#f7f3ec" stroke-opacity=".72" stroke-width="2.4" stroke-linecap="round"/>`;
+    s+=`<text x="${f(lx)}" y="${f(ly+4)}" text-anchor="middle" font-size="12" font-weight="600" fill="#f7f3ec" fill-opacity=".85">${i}</text>`;
+  }
+  s+=`<g id="dialNeedle">`;
+  s+=`<line x1="${cx}" y1="${cy+18}" x2="${cx}" y2="${cy+R-34}" stroke="#d7a86e" stroke-opacity=".35" stroke-width="3" stroke-linecap="round"/>`;
+  s+=`<circle cx="${cx}" cy="${cy+R}" r="12" fill="#d7a86e" fill-opacity=".25"/>`;
+  s+=`<circle cx="${cx}" cy="${cy+R}" r="7" fill="#d7a86e"/>`;
+  s+=`</g>`;
+  s+=`<text id="grindOut" x="${cx}" y="${cy-2}" text-anchor="middle" font-size="42" font-weight="800" fill="#f7f3ec">\u2014</text>`;
+  for(let i=0;i<4;i++){
+    s+=`<circle id="qd${i}" cx="${cx-27+i*18}" cy="${cy+22}" r="4" fill="#f7f3ec" fill-opacity=".28"/>`;
+  }
+  s+=`<text x="${cx}" y="${cy+46}" text-anchor="middle" font-size="10.5" fill="#f7f3ec" fill-opacity=".45">Micro <tspan id="microOut">0</tspan></text>`;
+  return s;
+}
+
+function buildDial(){
+  document.getElementById('opusDial').innerHTML=dialMarkup();
 }
 
 function renderScale(g){
-  const scale=document.getElementById('opusScale');
-  scale.innerHTML='<div class="rail"></div>';
+  const rot=144-24*Math.max(1,Math.min(11,g));
+  document.getElementById('dialNeedle').style.transform='rotate('+rot+'deg)';
+}
 
-  for(let i=1;i<=11;i++){
-    const major=document.createElement('div');
-    major.className='majorTick';
-    major.style.left=((i-1)/10*100)+'%';
-    scale.appendChild(major);
-
-    const lab=document.createElement('div');
-    lab.className='tickLabel';
-    lab.style.left=((i-1)/10*100)+'%';
-    lab.textContent=i;
-    scale.appendChild(lab);
-
-    if(i<11){
-      for(let q=1;q<=3;q++){
-        const mi=document.createElement('div');
-        mi.className='minorTick';
-        mi.style.left=(((i-1)+(q/4))/10*100)+'%';
-        scale.appendChild(mi);
-      }
-    }
+function renderQuarterDots(g){
+  const idx=quarterIndex(g);
+  for(let i=0;i<4;i++){
+    const d=document.getElementById('qd'+i);
+    const on=i===idx;
+    d.setAttribute('r',on?5:4);
+    d.setAttribute('fill',on?'#d7a86e':'#f7f3ec');
+    d.setAttribute('fill-opacity',on?'1':'.28');
   }
-
-  const d=document.createElement('div');
-  d.className='dot';
-  d.style.left=((g-1)/10*100)+'%';
-  scale.appendChild(d);
 }
 
 function calculate(){
@@ -479,6 +488,7 @@ function importLog(){
 
 
 window.addEventListener('load',()=>{
+  buildDial();
   const saved=JSON.parse(localStorage.getItem('brewguide-last')||'null');
   if(saved){
     current=saved.current || current;

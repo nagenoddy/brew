@@ -352,119 +352,6 @@ button{cursor:pointer}
   opacity:.86;
 }
 
-.scale{
-  position:relative;
-  height:78px;
-  margin:18px 2px 8px;
-}
-
-.rail{
-  position:absolute;
-  left:0;
-  right:0;
-  top:22px;
-  height:3px;
-  background:rgba(247,243,236,.34);
-  border-radius:99px;
-}
-
-.majorTick{
-  position:absolute;
-  top:12px;
-  width:2px;
-  height:22px;
-  background:rgba(247,243,236,.62);
-  border-radius:5px;
-  transform:translateX(-50%);
-}
-
-.minorTick{
-  position:absolute;
-  top:17px;
-  width:1px;
-  height:10px;
-  background:rgba(247,243,236,.28);
-  border-radius:5px;
-  transform:translateX(-50%);
-}
-
-.tickLabel{
-  position:absolute;
-  top:42px;
-  transform:translateX(-50%);
-  font-size:14px;
-  opacity:.80;
-  font-weight:900;
-  font-style:normal;
-}
-
-.dot{
-  position:absolute;
-  top:15px;
-  width:17px;
-  height:17px;
-  border-radius:50%;
-  background:var(--accent);
-  transform:translateX(-50%);
-  box-shadow:0 0 0 5px rgba(215,168,110,.28);
-}
-
-.quarterPanel{
-  border-top:1px solid rgba(247,243,236,.18);
-  padding-top:14px;
-  margin-top:8px;
-}
-
-.quarterLabel{
-  font-size:11px;
-  text-transform:uppercase;
-  letter-spacing:.12em;
-  font-weight:950;
-  opacity:.72;
-  text-align:center;
-  margin-bottom:8px;
-}
-
-.quarterDots{
-  display:flex;
-  justify-content:center;
-  gap:11px;
-  align-items:center;
-  margin-bottom:13px;
-}
-
-.qdot{
-  width:15px;
-  height:15px;
-  border:2px solid rgba(247,243,236,.75);
-  border-radius:50%;
-  opacity:.95;
-}
-
-.qdot.on{
-  background:var(--accent);
-  border-color:var(--accent);
-}
-
-.micro{
-  display:flex;
-  justify-content:space-between;
-  gap:12px;
-  align-items:flex-start;
-  font-weight:850;
-  font-size:12px;
-  opacity:.78;
-}
-
-.micro small{
-  display:block;
-  font-weight:750;
-  opacity:.72;
-  margin-top:2px;
-}
-
-.micro #microOut{font-size:13px;font-weight:900}
-
 .tiny{font-size:13px;color:var(--muted);line-height:1.35}
 
 .steps{display:flex;flex-direction:column;gap:10px}
@@ -632,4 +519,15 @@ button{cursor:pointer}
   margin-top:0;
   padding:11px 22px;
   font-size:15px;
+}
+
+
+/* ---- opus dial ---- */
+.dialWrap{margin-top:4px}
+
+.dialWrap svg{width:100%;display:block}
+
+#dialNeedle{
+  transform-origin:170px 150px;
+  transition:transform .7s cubic-bezier(.22,1,.36,1);
 }
