@@ -219,6 +219,13 @@ function calculate(){
   `).join('');
 
   localStorage.setItem('brewguide-last',JSON.stringify({current,roast,amount:amount.value,currentVariant,last}));
+
+  fbSelected=new Set();
+  renderFeedback();
+  const logBtnEl=document.getElementById('logBtn');
+  logBtnEl.textContent='Log this brew';
+  logBtnEl.disabled=false;
+
   show('result');
 }
 
@@ -252,6 +259,125 @@ function resetTimer(){
   clock.textContent='00:00';
   timerBtn.textContent='Start';
 }
+
+/* ---------- brew log ---------- */
+const FEEDBACK=['sweet','dry','bitter','sour','weak','muddy','perfect'];
+let fbSelected=new Set();
+
+function loadLog(){
+  try{const l=JSON.parse(localStorage.getItem('brew-log')||'[]');return Array.isArray(l)?l:[]}
+  catch(e){return []}
+}
+function saveLogData(l){localStorage.setItem('brew-log',JSON.stringify(l))}
+
+function renderFeedback(){
+  const row=document.getElementById('fbRow');
+  row.innerHTML='';
+  FEEDBACK.forEach(f=>{
+    const b=document.createElement('button');
+    b.className='fbChip'+(fbSelected.has(f)?' on':'');
+    b.textContent=f[0].toUpperCase()+f.slice(1);
+    b.onclick=()=>{
+      if(f==='perfect'){fbSelected.has(f)?fbSelected.delete(f):(fbSelected.clear(),fbSelected.add(f));}
+      else{fbSelected.delete('perfect');fbSelected.has(f)?fbSelected.delete(f):fbSelected.add(f);}
+      renderFeedback();
+    };
+    row.appendChild(b);
+  });
+}
+
+function logBrew(){
+  if(!last)return;
+  const rec={
+    id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),
+    ts:new Date().toISOString(),
+    brewer:current,
+    variant:last.m.variantKey||null,
+    volume:Math.round(last.liquid),
+    coffee_g:Number(last.coffee.toFixed(1)),
+    grind:last.grind,
+    roast,
+    coffeeId:null,
+    feedback:[...fbSelected],
+    rating:null,
+    note:null
+  };
+  const l=loadLog();
+  l.push(rec);
+  saveLogData(l);
+  const btn=document.getElementById('logBtn');
+  btn.textContent='Logged ✓';
+  btn.disabled=true;
+}
+
+function brewLabel(rec){
+  const m=methods[rec.brewer];
+  if(!m)return rec.brewer;
+  let name=m.name;
+  if(rec.variant&&m.variants&&m.variants[rec.variant])name+=' · '+m.variants[rec.variant].label;
+  return name;
+}
+
+function openJournal(){
+  const l=loadLog().slice().reverse();
+  const list=document.getElementById('logList');
+  document.getElementById('journalCount').textContent=
+    l.length?l.length+' brew'+(l.length===1?'':'s')+' logged on this device.':'';
+  if(!l.length){
+    list.innerHTML='<div class="logEmpty">No brews logged yet.<br>Calculate a recipe, taste, then tap the descriptors.</div>';
+  }else{
+    list.innerHTML=l.slice(0,50).map(r=>`
+      <div class="logItem">
+        <div class="logHead">
+          <b>${brewLabel(r)}</b>
+          <span class="logDate">${new Date(r.ts).toLocaleDateString(undefined,{day:'numeric',month:'short'})}
+            <button class="logDelete" onclick="deleteBrew('${r.id}')">×</button>
+          </span>
+        </div>
+        <div class="logMeta">${r.volume}g · ${r.coffee_g}g coffee · Opus ${formatGrind(r.grind)} · ${r.roast}</div>
+        ${r.feedback.length?'<div class="logChips">'+r.feedback.map(f=>'<span>'+f+'</span>').join('')+'</div>':''}
+      </div>
+    `).join('');
+  }
+  show('journal');
+}
+
+function deleteBrew(id){
+  saveLogData(loadLog().filter(r=>r.id!==id));
+  openJournal();
+}
+
+function exportLog(){
+  const data=JSON.stringify(loadLog());
+  const done=()=>alert('Backup copied. Paste it somewhere safe (Notes, email to yourself).');
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(data).then(done).catch(()=>prompt('Copy this backup text:',data));
+  }else{
+    prompt('Copy this backup text:',data);
+  }
+}
+
+function importLog(){
+  const raw=prompt('Paste a backup here:');
+  if(!raw)return;
+  try{
+    const incoming=JSON.parse(raw);
+    if(!Array.isArray(incoming))throw 0;
+    const cur=loadLog();
+    const ids=new Set(cur.map(r=>r.id));
+    let added=0;
+    incoming.forEach(r=>{
+      if(r&&r.id&&r.ts&&r.brewer&&!ids.has(r.id)){cur.push(r);ids.add(r.id);added++;}
+    });
+    cur.sort((a,b)=>a.ts<b.ts?-1:1);
+    saveLogData(cur);
+    alert(added+' brew'+(added===1?'':'s')+' imported.');
+    openJournal();
+  }catch(e){
+    alert('That did not look like a valid backup. Nothing was changed.');
+  }
+}
+
 
 window.addEventListener('load',()=>{
   const saved=JSON.parse(localStorage.getItem('brewguide-last')||'null');

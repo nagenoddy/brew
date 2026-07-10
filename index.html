@@ -17,6 +17,7 @@
     <div class="brand">
       <span class="brandWord">brew<span class="brandDot">.</span></span>
     </div>
+    <button class="journalLink" onclick="openJournal()">Journal</button>
   </div>
 
   <section id="home" class="screen active">
@@ -110,6 +111,12 @@
       <div class="steps" id="stepsOut"></div>
     </div>
 
+    <div class="card">
+      <div class="label">How was it? <span style="font-weight:400">(after tasting)</span></div>
+      <div class="fbRow" id="fbRow"></div>
+      <button class="btn secondary" id="logBtn" onclick="logBrew()">Log this brew</button>
+    </div>
+
     <button class="btn" onclick="startTimer()">▶ Simple brew timer</button>
   </section>
 
@@ -123,6 +130,19 @@
       <button class="btn secondary" onclick="resetTimer()">Reset</button>
       <p class="tiny">Simple count-up timer. Follow the brew guide above.</p>
     </div>
+  </section>
+
+  <section id="journal" class="screen">
+    <button class="back" onclick="show('home')">‹ Brewers</button>
+    <div class="hero">
+      <div class="eyebrow">Brew journal</div>
+      <div class="h1">Your recent brews</div>
+      <div class="sub" id="journalCount"></div>
+    </div>
+    <div id="logList"></div>
+    <button class="btn secondary" onclick="exportLog()">Copy backup</button>
+    <button class="btn secondary" onclick="importLog()">Import backup</button>
+    <p class="tiny">Backups are plain text — paste into Notes, a message to yourself, or another device's import.</p>
   </section>
 
   <div class="footer">Starting points only. Dial in by taste: sour → one quarter finer; bitter / ashy → one quarter coarser.</div>
