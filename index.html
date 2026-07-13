@@ -17,7 +17,10 @@
     <div class="brand">
       <span class="brandWord">brew<span class="brandDot">.</span></span>
     </div>
-    <button class="journalLink" onclick="openJournal()">Journal</button>
+    <div class="topNav">
+      <button class="settingsLink" onclick="openSettings()" aria-label="Manage Brewers">⚙</button>
+      <button class="journalLink" onclick="openJournal()">Journal</button>
+    </div>
   </div>
 
   <section id="home" class="screen active">
@@ -43,6 +46,11 @@
     <div class="card optionCard" id="variantCard">
       <div class="label" id="variantLabel">Brew style</div>
       <div class="seg" id="variantButtons"></div>
+    </div>
+
+    <div class="card optionCard" id="techniqueCard">
+      <div class="label">Technique</div>
+      <div class="seg" id="techniqueButtons"></div>
     </div>
 
     <div class="card">
@@ -137,6 +145,20 @@
     <button class="btn secondary" onclick="exportLog()">Copy backup</button>
     <button class="btn secondary" onclick="importLog()">Import backup</button>
     <p class="tiny">Backups are plain text — paste into Notes, a message to yourself, or another device's import.</p>
+  </section>
+
+  <section id="settings" class="screen">
+    <button class="back" onclick="show('home')">‹ Save & Close</button>
+    <div class="hero">
+      <div class="eyebrow">Configuration</div>
+      <div class="h1">My Brewers</div>
+      <div class="sub">Select the gear you own to clean up your morning grid dashboard view. Unchecked items stay hidden.</div>
+    </div>
+    <div class="card">
+      <div class="label">Select your active devices</div>
+      <div id="settingsList" class="settingsList"></div>
+    </div>
+    <button class="btn" onclick="show('home')">Save Changes</button>
   </section>
 
   <div class="footer">Starting points only. Dial in by taste: sour → one quarter finer; bitter / ashy → one quarter coarser.</div>
