@@ -22,7 +22,7 @@ body{
   padding:env(safe-area-inset-top) 14px env(safe-area-inset-bottom);
 }
 
-button,input{font:inherit}
+button,input,select{font:inherit}
 button{cursor:pointer}
 
 .app{max-width:980px;margin:0 auto;padding:18px 0 28px}
@@ -206,7 +206,17 @@ button{cursor:pointer}
   outline:none;
 }
 
-.unit{font-weight:900;color:var(--muted);font-size:18px}
+.selectInput {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: rgba(215,168,110,.08);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink);
+  outline: none;
+}
 
 .presetRow{
   display:flex;
@@ -375,7 +385,7 @@ button{cursor:pointer}
   .hero{padding:30px}
   .h1{font-size:42px}
   .card{padding:22px}
-  .screen#calc.active,.screen#result.active,.screen#settings.active{max-width:620px;margin:0 auto}
+  .screen#calc.active,.screen#result.active,.screen#settings.active,.screen#beans.active,.screen#addBean.active{max-width:620px;margin:0 auto}
   .screen#home.active{max-width:900px;margin:0 auto}
 }
 
@@ -574,4 +584,131 @@ button{cursor:pointer}
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+/* ---- beans library ---- */
+.beanList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.beanCard {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 16px;
+}
+
+.beanCard.archived {
+  opacity: 0.65;
+}
+
+.beanHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.beanTitle {
+  font-size: 18px;
+  font-weight: 850;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.beanTitle span {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+.beanRec {
+  font-size: 13px;
+  color: var(--ink);
+  background: rgba(215,168,110,.15);
+  padding: 6px 10px;
+  border-radius: 8px;
+  margin-top: 10px;
+  font-weight: 600;
+}
+
+.offsetControl {
+  display: flex;
+  align-items: center;
+  background: rgba(17,16,14,.05);
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.offsetControl button {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  background: transparent;
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.offsetControl button:active {
+  background: rgba(0,0,0,.08);
+}
+
+.offsetControl span {
+  width: 48px;
+  text-align: center;
+  font-weight: 850;
+  font-size: 15px;
+}
+
+.beanActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.beanActions button {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  padding: 6px 12px;
+  border-radius: 10px;
+}
+
+.formGroup {
+  margin-bottom: 16px;
+}
+
+.formGroup label {
+  display: block;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.formInput {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 600;
+  outline: none;
 }
