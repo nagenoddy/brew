@@ -1,9 +1,11 @@
 let current='v60',roast='medium',last=null,sec=0,int=null;
 let currentVariant={sage:'cone',oxo:'rapid'};
+let currentTechnique={};
 
 function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  if(id==='home') render();
 }
 
 function iconImg(key,name){
@@ -12,15 +14,38 @@ function iconImg(key,name){
 
 function getConfig(key=current){
   const base=methods[key];
-  if(!base.variants)return base;
-  const variantKey=currentVariant[key]||base.defaultVariant;
-  return {...base,...base.variants[variantKey],variantKey};
+  let cfg={...base};
+  if(base.variants){
+    const variantKey=currentVariant[key]||base.defaultVariant;
+    cfg={...base,...base.variants[variantKey],variantKey};
+  }
+  if(base.techniques){
+    const techniqueKey=currentTechnique[key]||Object.keys(base.techniques)[0];
+    const t={...base.techniques[techniqueKey]};
+    delete t.label;
+    cfg={...cfg,...t,techniqueKey};
+  }
+  return cfg;
+}
+
+function loadOwnedBrewers(){
+  try{
+    const val=localStorage.getItem('brew-owned');
+    if(!val) return Object.keys(methods);
+    const parsed=JSON.parse(val);
+    return (Array.isArray(parsed) && parsed.length>0) ? parsed : Object.keys(methods);
+  } catch(e){
+    return Object.keys(methods);
+  }
 }
 
 function render(){
   const box=document.getElementById('methods');
   box.innerHTML='';
+  const owned=loadOwnedBrewers();
+  
   Object.entries(methods).forEach(([k,m])=>{
+    if(!owned.includes(k)) return;
     const c=getConfig(k);
     box.innerHTML+=`
       <button class="method" onclick="choose('${k}')">
@@ -32,6 +57,31 @@ function render(){
       </button>
     `;
   });
+}
+
+function openSettings(){
+  const list=document.getElementById('settingsList');
+  list.innerHTML='';
+  const owned=loadOwnedBrewers();
+  
+  Object.entries(methods).forEach(([k,m])=>{
+    const isChecked = owned.includes(k) ? 'checked' : '';
+    list.innerHTML+=`
+      <div class="settingsRow">
+        <label for="chk-${k}">
+          <span style="width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center">${iconImg(m.icon,m.name)}</span>
+          ${m.name}
+        </label>
+        <input type="checkbox" id="chk-${k}" value="${k}" ${isChecked} onchange="saveSettings()">
+      </div>
+    `;
+  });
+  show('settings');
+}
+
+function saveSettings(){
+  const checked = Array.from(document.querySelectorAll('#settingsList input[type="checkbox"]:checked')).map(el=>el.value);
+  localStorage.setItem('brew-owned', JSON.stringify(checked));
 }
 
 function renderVariants(){
@@ -57,6 +107,37 @@ function renderVariants(){
     b.onclick=()=>setVariant(key);
     buttons.appendChild(b);
   });
+}
+
+function renderTechniques(){
+  const m=methods[current];
+  const card=document.getElementById('techniqueCard');
+  const buttons=document.getElementById('techniqueButtons');
+
+  if(!m.techniques){
+    card.classList.remove('active');
+    buttons.innerHTML='';
+    return;
+  }
+
+  card.classList.add('active');
+  buttons.innerHTML='';
+  const active=currentTechnique[current]||Object.keys(m.techniques)[0];
+  Object.entries(m.techniques).forEach(([key,t])=>{
+    const b=document.createElement('button');
+    b.textContent=t.label;
+    b.className=(active===key)?'on':'';
+    b.onclick=()=>setTechnique(key);
+    buttons.appendChild(b);
+  });
+}
+
+function setTechnique(key){
+  currentTechnique[current]=key;
+  const c=getConfig();
+  amount.value=c.defaultAmount;
+  renderTechniques();
+  renderPresets();
 }
 
 function renderPresets(){
@@ -86,6 +167,7 @@ function choose(k){
   amount.value=c.defaultAmount;
 
   renderVariants();
+  renderTechniques();
   renderPresets();
   show('calc');
 }
@@ -99,6 +181,7 @@ function setVariant(key){
   amount.value=c.defaultAmount;
 
   renderVariants();
+  renderTechniques();
   renderPresets();
 }
 
@@ -229,7 +312,7 @@ function calculate(){
     </div>
   `).join('');
 
-  localStorage.setItem('brewguide-last',JSON.stringify({current,roast,amount:amount.value,currentVariant,last}));
+  localStorage.setItem('brewguide-last',JSON.stringify({current,roast,amount:amount.value,currentVariant,currentTechnique,last}));
 
   fbSelected=new Set();
   renderFeedback();
@@ -277,7 +360,8 @@ let coachSuggested=null;
 
 function getCoachSuggestion(calcGrind, liquid){
   const vk=getConfig().variantKey||null;
-  const logs=loadLog().filter(r=>r.brewer===current&&(r.variant||null)===vk&&Array.isArray(r.feedback)&&r.feedback.length);
+  const tk=getConfig().techniqueKey||'classic';
+  const logs=loadLog().filter(r=>r.brewer===current&&(r.variant||null)===vk&&(r.technique||'classic')===tk&&Array.isArray(r.feedback)&&r.feedback.length);
   if(!logs.length)return null;
   const lastB=logs[logs.length-1];
   const f=new Set(lastB.feedback);
@@ -403,6 +487,7 @@ function logBrew(){
     ts:new Date().toISOString(),
     brewer:current,
     variant:last.m.variantKey||null,
+    technique:last.m.techniqueKey||null,
     volume:Math.round(last.liquid),
     coffee_g:Number(last.coffee.toFixed(1)),
     grind:last.grind,
@@ -425,6 +510,7 @@ function brewLabel(rec){
   if(!m)return rec.brewer;
   let name=m.name;
   if(rec.variant&&m.variants&&m.variants[rec.variant])name+=' · '+m.variants[rec.variant].label;
+  if(rec.technique&&rec.technique!=='classic'&&m.techniques&&m.techniques[rec.technique])name+=' \u00b7 '+m.techniques[rec.technique].label;
   return name;
 }
 
@@ -496,6 +582,7 @@ window.addEventListener('load',()=>{
     current=saved.current || current;
     roast=saved.roast || roast;
     currentVariant=saved.currentVariant || currentVariant;
+    currentTechnique=saved.currentTechnique || currentTechnique;
     setRoast(roast);
   }
   render();
