@@ -56,6 +56,7 @@
       <div class="seg" id="techniqueButtons"></div>
     </div>
 
+    <!-- Phase 4: Smart Bean Selector -->
     <div class="card">
       <div class="label">Coffee Bean</div>
       <select id="coffeeSelect" class="selectInput" onchange="selectCoffee(this.value)"></select>
@@ -121,16 +122,25 @@
       <div class="steps" id="stepsOut"></div>
     </div>
 
+    <!-- Phase 5: Two-Axis Extraction Sliders -->
     <div class="card">
       <div class="label">How was it? <span style="font-weight:400">(after tasting)</span></div>
       
       <div class="sliderLabel" style="margin-top:10px;">Extraction: <span id="extLabel" style="color:var(--accent); float:right;">Sweet / Balanced</span></div>
       <input type="range" id="extSlider" min="-2" max="2" value="0" step="1" oninput="updateSliderLabels()">
-      <div class="sliderRange"><span>Sour</span><span>Balanced</span><span>Bitter/Ashy</span></div>
+      <div class="sliderRange">
+        <span>Sour</span>
+        <span>Balanced</span>
+        <span>Bitter/Ashy</span>
+      </div>
 
       <div class="sliderLabel" style="margin-top:28px;">Strength: <span id="strLabel" style="color:var(--accent); float:right;">Perfect</span></div>
       <input type="range" id="strSlider" min="-2" max="2" value="0" step="1" oninput="updateSliderLabels()">
-      <div class="sliderRange"><span>Weak</span><span>Perfect</span><span>Muddy/Heavy</span></div>
+      <div class="sliderRange">
+        <span>Weak</span>
+        <span>Perfect</span>
+        <span>Muddy/Heavy</span>
+      </div>
 
       <button class="btn secondary" id="logBtn" onclick="logBrew()" style="margin-top:24px;">Log this brew</button>
     </div>
@@ -163,6 +173,7 @@
     <p class="tiny">Backups are plain text — paste into Notes, a message to yourself, or another device's import.</p>
   </section>
 
+  <!-- Phase 4: Beans Library Screen -->
   <section id="beans" class="screen">
     <button class="back" onclick="show('home')">‹ Brewers</button>
     <div class="hero">
