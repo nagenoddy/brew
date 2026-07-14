@@ -14,7 +14,9 @@ const icons={
 const methods={
   v60:{
     icon:'v60',name:'V60',hint:'Clean pour-over. Best default for 250–450 g.',
-    defaultAmount:340,presets:[250,340,450],ratio:16.5,grind:5.5,type:'Medium fine',roastAdjust:true,
+    defaultAmount:340,presets:[250,340,450],ratio:16.5,grind:5.5,
+    grindCurve:[[250,5.25],[340,5.5],[450,5.75]],
+    type:'Medium fine',roastAdjust:true,
     steps:['Rinse the paper filter well; discard the rinse water.','Bloom with 2–3× coffee weight, gentle swirl, 45 sec.','Pour to 60% of total in slow centre-out circles by 1:15.','Final pour to weight by 1:45, then one gentle swirl to settle the bed.','Drawdown done by 2:30–3:15 — the bed should finish flat, not domed.'],
     techniques:{
       classic:{label:'Classic'},
