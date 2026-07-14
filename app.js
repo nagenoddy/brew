@@ -301,3 +301,563 @@ function dialMarkup() {
   for(let i=1; i<=11; i++) {
     const [x1,y1] = pt(i,R+7), [x2,y2] = pt(i,R-7), [lx,ly] = pt(i,R-24);
     s += `<line x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}" stroke="#f7f3ec" stroke-opacity=".72" stroke-width="2.4" stroke-linecap="round"/>`;
+    s += `<text x="${f(lx)}" y="${f(ly+4)}" text-anchor="middle" font-size="12" font-weight="600" fill="#f7f3ec" fill-opacity=".85">${i}</text>`;
+  }
+  s += `<g id="dialNeedle">`;
+  s += `<line x1="${cx}" y1="${cy+18}" x2="${cx}" y2="${cy+R-34}" stroke="#d7a86e" stroke-opacity=".35" stroke-width="3" stroke-linecap="round"/>`;
+  s += `<circle cx="${cx}" cy="${cy+R}" r="12" fill="#d7a86e" fill-opacity=".25"/>`;
+  s += `<circle cx="${cx}" cy="${cy+R}" r="7" fill="#d7a86e"/>`;
+  s += `</g>`;
+  s += `<text id="grindOut" x="${cx}" y="${cy-2}" text-anchor="middle" font-size="42" font-weight="800" fill="#f7f3ec">\u2014</text>`;
+  for(let i=0; i<4; i++){
+    s += `<circle id="qd${i}" cx="${cx-27+i*18}" cy="${cy+22}" r="4" fill="#f7f3ec" fill-opacity=".28"/>`;
+  }
+  return s;
+}
+
+function buildDial() {
+  document.getElementById('opusDial').innerHTML = dialMarkup();
+}
+
+function renderScale(g) {
+  const rot = 144 - 24 * Math.max(1, Math.min(11, g));
+  document.getElementById('dialNeedle').style.transform = 'rotate(' + rot + 'deg)';
+}
+
+function renderQuarterDots(g) {
+  const idx = quarterIndex(g);
+  for(let i=0; i<4; i++) {
+    const d = document.getElementById('qd'+i);
+    const on = i === idx;
+    d.setAttribute('r', on ? 5 : 4);
+    d.setAttribute('fill', on ? '#d7a86e' : '#f7f3ec');
+    d.setAttribute('fill-opacity', on ? '1' : '.28');
+  }
+}
+
+function calculate() {
+  const base = methods[current];
+  const m = getConfig();
+  const amountVal = document.getElementById('amount').value;
+  const liquid = Number(amountVal || 0);
+  const coffee = liquid / m.ratio;
+  let water = liquid;
+
+  if (current === 'flair') {
+    water = coffee * m.ratio;
+  } else if (current === 'oxo' && (m.variantKey === 'rapid' || m.variantKey === 'cold')) {
+    water = coffee * m.ratio;
+  } else if (current === 'sage' && m.variantKey === 'cold') {
+    water = coffee * m.ratio;
+  }
+
+  const grind = adjGrind(grindForVolume(m, liquid));
+  last = { m, liquid, coffee, water, grind };
+  coachApplied = false; // Reset coach tracking flag
+
+  document.getElementById('resIcon').innerHTML = iconImg(base.icon, base.name);
+  document.getElementById('resName').textContent = base.name;
+  document.getElementById('coffeeOut').textContent = coffee.toFixed(1) + ' g';
+  document.getElementById('waterOut').textContent = water.toFixed(0) + ' g';
+  document.getElementById('grindOut').textContent = formatGrind(grind);
+  document.getElementById('grindType').textContent = m.type;
+  document.getElementById('microOut').textContent = '0';
+
+  renderScale(grind);
+  renderQuarterDots(grind);
+
+  let appliedString = `Ratio 1:${m.ratio}.`;
+  if (m.roastAdjust) appliedString += ` ${roast} roast applied.`;
+  
+  if (currentCoffeeId) {
+    const b = coffees.find(x => x.id === currentCoffeeId);
+    if (b && b.grindOffset !== 0) {
+      appliedString += ` Bag offset (${b.grindOffset > 0 ? '+'+b.grindOffset : b.grindOffset}) applied.`;
+    }
+  }
+
+  if (brewerOffsets[current]) {
+    appliedString += ` Brewer baseline offset (${brewerOffsets[current] > 0 ? '+'+brewerOffsets[current] : brewerOffsets[current]}) applied.`;
+  }
+
+  document.getElementById('ratioOut').textContent = appliedString;
+
+  document.getElementById('stepsOut').innerHTML = m.steps.map((s, i) => `
+    <div class="step">
+      <b>${i+1}. ${s}</b>
+      <span>${i === 0 ? 'Start here, then move down the list.' : ''}</span>
+    </div>
+  `).join('');
+
+  localStorage.setItem('brewguide-last', JSON.stringify({ current, roast, amount: amountVal, currentVariant, currentTechnique, last, currentCoffeeId }));
+
+  document.getElementById('extSlider').value = 0;
+  document.getElementById('strSlider').value = 0;
+  updateSliderLabels();
+
+  renderCoach(grind, liquid);
+  const logBtnEl = document.getElementById('logBtn');
+  logBtnEl.textContent = 'Log this brew';
+  logBtnEl.disabled = false;
+
+  show('result');
+}
+
+function startTimer() {
+  document.getElementById('timerMethod').textContent = methods[current].name;
+  show('timer');
+}
+
+function fmt(s) {
+  return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+}
+
+function toggleTimer() {
+  if (int) {
+    clearInterval(int);
+    int = null;
+    document.getElementById('timerBtn').textContent = 'Start';
+  } else {
+    int = setInterval(() => {
+      sec++;
+      document.getElementById('clock').textContent = fmt(sec);
+    }, 1000);
+    document.getElementById('timerBtn').textContent = 'Pause';
+  }
+}
+
+function resetTimer() {
+  clearInterval(int);
+  int = null;
+  sec = 0;
+  document.getElementById('clock').textContent = '00:00';
+  document.getElementById('timerBtn').textContent = 'Start';
+}
+
+/* ---------- Phase 5: Sliders ---------- */
+function updateSliderLabels() {
+  const ext = document.getElementById('extSlider').value;
+  const str = document.getElementById('strSlider').value;
+  
+  const extMap = { "-2":"Very Sour", "-1":"Sour", "0":"Sweet / Balanced", "1":"Bitter", "2":"Bitter / Ashy" };
+  const strMap = { "-2":"Very Weak", "-1":"Weak", "0":"Perfect", "1":"Heavy", "2":"Muddy / Heavy" };
+  
+  document.getElementById('extLabel').textContent = extMap[ext];
+  document.getElementById('strLabel').textContent = strMap[str];
+}
+
+/* ---------- Phase 5: Learning Engine ---------- */
+function runLearningEngine() {
+  const insights = document.getElementById('insightsCard');
+  if (!insights) return;
+  
+  const logs = loadLog();
+  let suggestion = null;
+  const owned = loadOwnedBrewers();
+
+  for (const brewer of owned) {
+    const bLogs = logs.filter(r => r.brewer === brewer && r.ext !== undefined);
+    if (bLogs.length >= 5) {
+      const recent = bLogs.slice(-5);
+      const uniqueCoffees = new Set(recent.map(r => r.coffeeId || 'unlogged')).size;
+      
+      if (uniqueCoffees >= 2) {
+        const avgExt = recent.reduce((sum, r) => sum + r.ext, 0) / 5;
+        let delta = 0;
+        let fault = '';
+        
+        if (avgExt <= -0.8) { delta = -0.25; fault = 'sour / under-extracted'; }
+        else if (avgExt >= 0.8) { delta = 0.25; fault = 'bitter / over-extracted'; }
+        
+        if (delta !== 0) {
+          const mName = methods[brewer].name;
+          suggestion = {
+            brewer, delta,
+            text: `Baseline Drift Detected: ${mName}`,
+            reason: `Your last 5 brews on the ${mName} (spanning ${uniqueCoffees} different beans) have consistently been ${fault}. Recommend shifting the permanent brewer baseline by ${delta > 0 ? '+'+delta : delta}.`
+          };
+          break; // Show one insight at a time
+        }
+      }
+    }
+  }
+
+  if (suggestion) {
+    document.getElementById('insightText').textContent = suggestion.text;
+    document.getElementById('insightReason').textContent = suggestion.reason;
+    document.getElementById('insightApply').onclick = () => applyBaselineShift(suggestion.brewer, suggestion.delta);
+    insights.style.display = 'block';
+  } else {
+    insights.style.display = 'none';
+  }
+}
+
+function applyBaselineShift(brewer, delta) {
+  brewerOffsets[brewer] = (brewerOffsets[brewer] || 0) + delta;
+  localStorage.setItem('brewer-offsets', JSON.stringify(brewerOffsets));
+  document.getElementById('insightsCard').style.display = 'none';
+  alert(`${methods[brewer].name} baseline offset saved!`);
+  render();
+}
+
+/* ---------- coach ---------- */
+let coachSuggested = null;
+
+function getAgeWarning() {
+  if (!currentCoffeeId) return '';
+  const b = coffees.find(x => x.id === currentCoffeeId);
+  if (b && b.roastDate) {
+    const ageDays = (Date.now() - new Date(b.roastDate).getTime()) / 86400000;
+    if (ageDays > 42) {
+      return ' Note: This coffee is 6+ weeks off roast. Expect fading sweetness; bias +0.25 coarser if it tastes dry/woody.';
+    }
+  }
+  return '';
+}
+
+function getCoachSuggestion(calcGrind, liquid) {
+  const vk = getConfig().variantKey || null;
+  const tk = getConfig().techniqueKey || 'classic';
+  const logs = loadLog().filter(r => r.brewer === current && (r.variant || null) === vk && (r.technique || 'classic') === tk && r.ext !== undefined);
+  
+  const ageWarning = getAgeWarning();
+  
+  if (!logs.length) {
+    if (ageWarning) return { text: 'Age Check', reason: ageWarning.trim(), confidence: 'medium', suggested: null };
+    return null;
+  }
+  
+  const lastB = logs[logs.length-1];
+  const dateStr = new Date(lastB.ts).toLocaleDateString(undefined, { day:'numeric', month:'short' });
+  const ctx = 'Last brew (' + dateStr + ', ' + lastB.volume + 'g)';
+
+  if (lastB.ext === 0 && lastB.str === 0) {
+    return { text: ctx + ' was perfect at Opus ' + formatGrind(lastB.grind) + '.', reason: 'Change nothing \u2014 repeat the recipe exactly.' + ageWarning, confidence: 'high', suggested: null };
+  }
+
+  let delta = 0, reason = '', conf = 'high';
+  
+  if (lastB.ext > 0) {
+    delta = lastB.ext === 2 ? 0.5 : 0.25;
+    reason = lastB.ext === 2 ? 'Major over-extraction (ashy/very bitter) \u2014 go much coarser to speed up flow.' : 'Slightly over-extracted (dry/bitter) \u2014 coarser speeds up the flow.';
+  } else if (lastB.ext < 0) {
+    delta = lastB.ext === -2 ? -0.5 : -0.25;
+    reason = lastB.ext === -2 ? 'Major under-extraction (very sour) \u2014 go much finer to slow down flow.' : 'Slightly under-extracted (sour) \u2014 finer slows it down.';
+  } else if (lastB.str < 0) {
+    return { text: ctx + ' was weak but balanced.', reason: 'Strength issue, not extraction \u2014 use ~10% more coffee at the same grind.' + ageWarning, confidence: 'medium', suggested: null };
+  } else if (lastB.str > 0) {
+    return { text: ctx + ' was muddy/heavy but balanced.', reason: 'If the filter is clogging, try going slightly coarser or pouring gentler.' + ageWarning, confidence: 'medium', suggested: null };
+  }
+
+  if (logs.length >= 2) {
+    const prev = logs[logs.length-2];
+    const sameDir = (delta > 0 && prev.ext > 0) || (delta < 0 && prev.ext < 0);
+    if (sameDir && prev.grind !== lastB.grind) {
+      delta *= 2;
+      reason += ' The same fault appeared twice despite an adjustment, so a bigger step is warranted.';
+    }
+  }
+
+  let suggested = Math.max(1, Math.min(11, quarter(lastB.grind + delta)));
+  if ((delta > 0 && calcGrind >= suggested) || (delta < 0 && calcGrind <= suggested)) {
+    if (ageWarning) return { text: 'Age Check', reason: ageWarning.trim(), confidence: 'medium', suggested: null };
+    return null;
+  }
+
+  if (lastB.volume && liquid && Math.abs(lastB.volume - liquid) / lastB.volume > 0.25) {
+    reason += ' Your last logged brew was a different batch size, so treat this as a starting point.';
+    if (conf === 'high') conf = 'medium';
+  }
+
+  return { text: ctx + ' missed the sweet spot at Opus ' + formatGrind(lastB.grind) + '.', reason: reason + ageWarning, confidence: conf, suggested: suggested };
+}
+
+function renderCoach(calcGrind, liquid) {
+  const card = document.getElementById('coachCard');
+  const s = getCoachSuggestion(calcGrind, liquid);
+  coachSuggested = s && s.suggested ? s.suggested : null;
+  if (!s) { card.style.display = 'none'; return; }
+  document.getElementById('coachText').textContent = s.text;
+  document.getElementById('coachReason').textContent = s.reason + (s.suggested ? ' Try Opus ' + formatGrind(s.suggested) + '.' : '');
+  document.getElementById('coachConf').textContent = s.confidence + ' confidence';
+  const btn = document.getElementById('coachApply');
+  btn.style.display = s.suggested ? '' : 'none';
+  btn.textContent = 'Apply ' + (s.suggested ? formatGrind(s.suggested) : '');
+  btn.disabled = false;
+  card.style.display = '';
+}
+
+function applyCoach() {
+  if (!coachSuggested || !last) return;
+  last.grind = coachSuggested;
+  coachApplied = true; // Tracking flag activated
+  document.getElementById('grindOut').textContent = formatGrind(coachSuggested);
+  renderScale(coachSuggested);
+  renderQuarterDots(coachSuggested);
+  const btn = document.getElementById('coachApply');
+  btn.textContent = 'Applied \u2713';
+  btn.disabled = true;
+}
+
+/* ---------- brew log ---------- */
+function loadLog() {
+  try { const l = JSON.parse(localStorage.getItem('brew-log') || '[]'); return Array.isArray(l) ? l : []; }
+  catch(e) { return []; }
+}
+
+function saveLogData(l) { localStorage.setItem('brew-log', JSON.stringify(l)); }
+
+function logBrew() {
+  if (!last) return;
+  const ext = parseInt(document.getElementById('extSlider').value);
+  const str = parseInt(document.getElementById('strSlider').value);
+
+  const rec = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+    ts: new Date().toISOString(),
+    brewer: current,
+    variant: last.m.variantKey || null,
+    technique: last.m.techniqueKey || null,
+    volume: Math.round(last.liquid),
+    coffee_g: Number(last.coffee.toFixed(1)),
+    grind: last.grind,
+    roast: roast,
+    coffeeId: currentCoffeeId || null,
+    ext: ext,
+    str: str,
+    coachApplied: coachApplied, // Saved to data schema for analytics
+    rating: null,
+    note: null
+  };
+  const l = loadLog();
+  l.push(rec);
+  saveLogData(l);
+  const btn = document.getElementById('logBtn');
+  btn.textContent = 'Logged \u2713';
+  btn.disabled = true;
+}
+
+function brewLabel(rec) {
+  const m = methods[rec.brewer];
+  if (!m) return rec.brewer;
+  let name = m.name;
+  if (rec.variant && m.variants && m.variants[rec.variant]) name += ' · ' + m.variants[rec.variant].label;
+  if (rec.technique && rec.technique !== 'classic' && m.techniques && m.techniques[rec.technique]) name += ' \u00b7 ' + m.techniques[rec.technique].label;
+  return name;
+}
+
+function openJournal() {
+  const l = loadLog().slice().reverse();
+  const list = document.getElementById('logList');
+  document.getElementById('journalCount').textContent = l.length ? l.length + ' brew' + (l.length === 1 ? '' : 's') + ' logged on this device.' : '';
+  if (!l.length) {
+    list.innerHTML = '<div class="logEmpty">No brews logged yet.</div>';
+  } else {
+    list.innerHTML = l.slice(0, 50).map(r => {
+      let desc = '';
+      if (r.ext !== undefined) {
+        if (r.ext === 0 && r.str === 0) desc = 'Perfect';
+        else {
+          if (r.ext !== 0) desc += (r.ext > 0 ? 'Over-extracted' : 'Under-extracted') + ' ';
+          if (r.str !== 0) desc += (r.str > 0 ? '(Heavy)' : '(Weak)');
+        }
+      }
+      return `
+      <div class="logItem">
+        <div class="logHead">
+          <b>${brewLabel(r)}</b>
+          <span class="logDate">${new Date(r.ts).toLocaleDateString(undefined, { day:'numeric', month:'short' })}
+            <button class="logDelete" onclick="deleteBrew('${r.id}')">×</button>
+          </span>
+        </div>
+        <div class="logMeta">${r.volume}g · ${r.coffee_g}g coffee · Opus ${formatGrind(r.grind)} · ${r.roast}</div>
+        ${desc ? `<div class="logMeta" style="font-weight:700; color:var(--accent); margin-top:6px;">${desc} ${r.coachApplied ? '<span>(Guided)</span>' : ''}</div>` : ''}
+      </div>
+    `;
+    }).join('');
+  }
+  show('journal');
+}
+
+function deleteBrew(id) {
+  saveLogData(loadLog().filter(r => r.id !== id));
+  openJournal();
+}
+
+function exportLog() {
+  const data = JSON.stringify(loadLog());
+  const done = () => alert('Backup copied. Paste it somewhere safe (Notes, email to yourself).');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(data).then(done).catch(() => prompt('Copy this backup text:', data));
+  } else {
+    prompt('Copy this backup text:', data);
+  }
+}
+
+function importLog() {
+  const raw = prompt('Paste a backup here:');
+  if (!raw) return;
+  try {
+    const incoming = JSON.parse(raw);
+    if (!Array.isArray(incoming)) throw 0;
+    const cur = loadLog();
+    const ids = new Set(cur.map(r => r.id));
+    let added = 0;
+    incoming.forEach(r => {
+      if (r && r.id && r.ts && r.brewer && !ids.has(r.id)) { cur.push(r); ids.add(r.id); added++; }
+    });
+    cur.sort((a,b) => a.ts < b.ts ? -1 : 1);
+    saveLogData(cur);
+    alert(added + ' brew' + (added === 1 ? '' : 's') + ' imported.');
+    openJournal();
+  } catch(e) {
+    alert('That did not look like a valid backup. Nothing was changed.');
+  }
+}
+
+/* ---------- Phase 4: Coffee Beans Library ---------- */
+function loadCoffees() {
+  try { const c = JSON.parse(localStorage.getItem('brew-coffees') || '[]'); return Array.isArray(c) ? c : []; }
+  catch(e) { return []; }
+}
+
+function saveCoffeesData(c) {
+  localStorage.setItem('brew-coffees', JSON.stringify(c));
+}
+
+function showBeans() {
+  coffees = loadCoffees();
+  renderBeanList();
+  show('beans');
+}
+
+function showAddBean() {
+  document.getElementById('newRoaster').value = '';
+  document.getElementById('newName').value = '';
+  document.getElementById('newRoast').value = 'medium';
+  document.getElementById('newProcess').value = '';
+  document.getElementById('newDate').value = '';
+  show('addBean');
+}
+
+function saveNewBean() {
+  const roaster = document.getElementById('newRoaster').value.trim();
+  const name = document.getElementById('newName').value.trim();
+  const dateStr = document.getElementById('newDate').value;
+  
+  if (!roaster || !name) {
+    alert("Roaster and Coffee Name are required.");
+    return;
+  }
+  
+  const newBean = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+    roaster: roaster,
+    name: name,
+    roastLevel: document.getElementById('newRoast').value,
+    process: document.getElementById('newProcess').value,
+    roastDate: dateStr || null,
+    grindOffset: 0,
+    status: 'active'
+  };
+  
+  coffees.push(newBean);
+  saveCoffeesData(coffees);
+  showBeans();
+}
+
+function adjustOffset(id, delta) {
+  const b = coffees.find(x => x.id === id);
+  if (b) {
+    b.grindOffset = quarter(b.grindOffset + delta);
+    saveCoffeesData(coffees);
+    renderBeanList();
+  }
+}
+
+function toggleBeanStatus(id) {
+  const b = coffees.find(x => x.id === id);
+  if (b) {
+    b.status = b.status === 'active' ? 'archived' : 'active';
+    if (b.status === 'archived' && currentCoffeeId === id) {
+      currentCoffeeId = null;
+    }
+    saveCoffeesData(coffees);
+    renderBeanList();
+  }
+}
+
+function renderBeanList() {
+  const activeDiv = document.getElementById('activeBeanList');
+  const archDiv = document.getElementById('archivedBeanList');
+  
+  activeDiv.innerHTML = '';
+  archDiv.innerHTML = '';
+  
+  if (coffees.length === 0) {
+    activeDiv.innerHTML = '<div class="logEmpty">No coffees tracked yet.<br>Tap above to add a bag.</div>';
+  }
+  
+  coffees.forEach(b => {
+    let rec = "";
+    if (b.roastLevel === 'light') rec = "Best for: Pour-over (V60, Hoop)";
+    if (b.roastLevel === 'dark') rec = "Best for: Espresso, Moka, Immersion";
+    if (b.roastLevel === 'medium') rec = "Versatile: Excels in Clever or AeroPress";
+
+    let dateStr = b.roastDate ? new Date(b.roastDate).toLocaleDateString(undefined, { month:'short', day:'numeric' }) : 'No date';
+    let procStr = b.process ? b.process.charAt(0).toUpperCase() + b.process.slice(1) + ' · ' : '';
+
+    const html = `
+      <div class="beanCard ${b.status === 'archived' ? 'archived' : ''}">
+        <div class="beanHead">
+          <div class="beanTitle">
+            <span>${b.roaster}</span>
+            ${b.name}
+          </div>
+        </div>
+        <div class="logMeta" style="margin-bottom:12px;">${procStr}${b.roastLevel.charAt(0).toUpperCase() + b.roastLevel.slice(1)} · Roasted ${dateStr}</div>
+        
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="logMeta" style="font-weight:700;">Grind Offset</div>
+          <div class="offsetControl">
+            <button onclick="adjustOffset('${b.id}', -0.25)">-</button>
+            <span>${b.grindOffset > 0 ? '+' + b.grindOffset : b.grindOffset}</span>
+            <button onclick="adjustOffset('${b.id}', 0.25)">+</button>
+          </div>
+        </div>
+        
+        <div class="beanRec">${rec}</div>
+        
+        <div class="beanActions">
+          <button onclick="toggleBeanStatus('${b.id}')">${b.status === 'active' ? 'Archive Bag' : 'Unarchive'}</button>
+        </div>
+      </div>
+    `;
+    
+    if (b.status === 'active') {
+      activeDiv.innerHTML += html;
+    } else {
+      archDiv.innerHTML += html;
+    }
+  });
+}
+
+window.addEventListener('load', () => {
+  buildDial();
+  coffees = loadCoffees();
+  const saved = JSON.parse(localStorage.getItem('brewguide-last') || 'null');
+  if (saved) {
+    current = saved.current || current;
+    roast = saved.roast || roast;
+    currentVariant = saved.currentVariant || currentVariant;
+    currentTechnique = saved.currentTechnique || currentTechnique;
+    currentCoffeeId = saved.currentCoffeeId || null;
+    setRoast(roast);
+  }
+  render();
+  runLearningEngine(); // Run on initial load
+});
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
