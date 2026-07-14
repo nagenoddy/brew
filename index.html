@@ -7,54 +7,232 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <title>brew.</title>
+
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
 <div class="app">
   <div class="top">
-    <div class="brand"><span class="brandWord">brew<span class="brandDot">.</span></span></div>
+    <div class="brand">
+      <span class="brandWord">brew<span class="brandDot">.</span></span>
+    </div>
     <div class="topNav">
       <button class="journalLink" onclick="showBeans()">Beans</button>
       <button class="journalLink" onclick="openJournal()">Journal</button>
     </div>
   </div>
+
   <section id="home" class="screen active">
-    <div class="hero"><div class="eyebrow">Morning workflow</div><div class="h1">What are we brewing today?</div></div>
+    <div class="hero">
+      <div class="eyebrow">Morning workflow</div>
+      <div class="h1">What are we brewing today?</div>
+      <div class="sub">Tap a brewer. Then adjust the liquid amount, roast, and starting Opus setting.</div>
+    </div>
     <div class="grid" id="methods"></div>
-    <div style="margin-top:36px; text-align:center;"><button class="btn secondary" style="width:auto; padding:10px 20px;" onclick="openSettings()">⚙ Manage Brewers</button></div>
+    <div style="margin-top: 36px; text-align: center;">
+      <button class="btn secondary" style="width: auto; padding: 10px 20px; font-size: 15px;" onclick="openSettings()">⚙ Manage Brewers</button>
+    </div>
   </section>
+
   <section id="calc" class="screen">
     <button class="back" onclick="show('home')">‹ Brewers</button>
-    <div class="card"><div class="resultTitle"><div class="recipeIcon" id="calcIcon"></div><h2 id="calcName"></h2></div><p class="sub" id="calcHint"></p></div>
-    <div class="card optionCard" id="variantCard"><div class="label" id="variantLabel">Brew style</div><div class="seg" id="variantButtons"></div></div>
-    <div class="card optionCard" id="techniqueCard"><div class="label">Technique</div><div class="seg" id="techniqueButtons"></div></div>
-    <div class="card"><div class="label">Coffee Bean</div><select id="coffeeSelect" class="selectInput" onchange="selectCoffee(this.value)"></select></div>
-    <div class="card"><div class="label">How much brewed coffee / liquid?</div><div class="amountrow"><input id="amount" class="input" type="number" inputmode="decimal" value="350"><div class="unit">g/ml</div></div><div class="presetRow" id="presetRow"></div></div>
-    <div class="card"><div class="label">Roast adjustment</div><div class="seg"><button id="rLight" onclick="setRoast('light')">Light</button><button id="rMed" class="on" onclick="setRoast('medium')">Medium</button><button id="rDark" onclick="setRoast('dark')">Dark</button></div></div>
+
+    <div class="card">
+      <div class="resultTitle">
+        <div class="recipeIcon" id="calcIcon"></div>
+        <h2 id="calcName"></h2>
+      </div>
+      <p class="sub" id="calcHint"></p>
+    </div>
+
+    <div class="card optionCard" id="variantCard">
+      <div class="label" id="variantLabel">Brew style</div>
+      <div class="seg" id="variantButtons"></div>
+    </div>
+
+    <div class="card optionCard" id="techniqueCard">
+      <div class="label">Technique</div>
+      <div class="seg" id="techniqueButtons"></div>
+    </div>
+
+    <div class="card">
+      <div class="label">Coffee Bean</div>
+      <select id="coffeeSelect" class="selectInput" onchange="selectCoffee(this.value)"></select>
+    </div>
+
+    <div class="card">
+      <div class="label">How much brewed coffee / liquid do you want?</div>
+      <div class="amountrow">
+        <input id="amount" class="input" type="number" inputmode="decimal" value="350">
+        <div class="unit">g/ml</div>
+      </div>
+      <div class="presetRow" id="presetRow"></div>
+    </div>
+
+    <div class="card">
+      <div class="label">Roast adjustment</div>
+      <div class="seg">
+        <button id="rLight" onclick="setRoast('light')">Light</button>
+        <button id="rMed" class="on" onclick="setRoast('medium')">Medium</button>
+        <button id="rDark" onclick="setRoast('dark')">Dark</button>
+      </div>
+    </div>
+
     <button class="btn" onclick="calculate()">Calculate</button>
+    <button class="btn secondary" onclick="show('home')">Choose another brewer</button>
   </section>
+
   <section id="result" class="screen">
     <button class="back" onclick="show('calc')">‹ Edit recipe</button>
-    <div class="card coach" id="coachCard" style="display:none"><div class="label">Coach</div><p class="coachText" id="coachText"></p><p class="coachReason" id="coachReason"></p><button class="btn coachApply" id="coachApply" onclick="applyCoach()">Apply</button></div>
-    <div class="card"><div class="resultTitle"><div class="bigIcon" id="resIcon"></div><h2 id="resName"></h2></div><div class="stats"><div class="stat"><b id="coffeeOut">—</b><span>Coffee</span></div><div class="stat"><b id="waterOut">—</b><span>Water</span></div></div><div class="opus"><div class="dialWrap"><svg id="opusDial" viewBox="0 0 340 294"></svg></div></div><p class="tiny" id="ratioOut"></p></div>
-    <div class="card"><div class="label">Brew guide</div><div class="steps" id="stepsOut"></div></div>
-    <div class="card"><div class="label">How was it?</div>
-      <div class="sliderLabel">Extraction: <span id="extLabel">Sweet / Balanced</span></div>
+
+    <div class="card coach" id="coachCard" style="display:none">
+      <div class="label">Coach</div>
+      <p class="coachText" id="coachText"></p>
+      <p class="coachReason" id="coachReason"></p>
+      <div class="coachRow">
+        <span class="confChip" id="coachConf"></span>
+        <button class="btn coachApply" id="coachApply" onclick="applyCoach()">Apply</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="resultTitle">
+        <div class="bigIcon" id="resIcon"></div>
+        <h2 id="resName"></h2>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><b id="coffeeOut">—</b><span>Coffee</span></div>
+        <div class="stat"><b id="waterOut">—</b><span>Water</span></div>
+      </div>
+
+      <div class="opus">
+        <div class="dialWrap">
+          <svg id="opusDial" viewBox="0 0 340 294" role="img" aria-label="Opus grind dial"></svg>
+        </div>
+      </div>
+
+      <p class="tiny" id="ratioOut"></p>
+    </div>
+
+    <div class="card">
+      <div class="label">Brew guide</div>
+      <div class="steps" id="stepsOut"></div>
+    </div>
+
+    <div class="card">
+      <div class="label">How was it? <span style="font-weight:400">(after tasting)</span></div>
+      
+      <div class="sliderLabel" style="margin-top:10px;">Extraction: <span id="extLabel" style="color:var(--accent); float:right;">Sweet / Balanced</span></div>
       <input type="range" id="extSlider" min="-2" max="2" value="0" step="1" oninput="updateSliderLabels()">
       <div class="sliderRange"><span>Sour</span><span>Balanced</span><span>Bitter/Ashy</span></div>
-      <div class="sliderLabel" style="margin-top:20px;">Strength: <span id="strLabel">Perfect</span></div>
+
+      <div class="sliderLabel" style="margin-top:28px;">Strength: <span id="strLabel" style="color:var(--accent); float:right;">Perfect</span></div>
       <input type="range" id="strSlider" min="-2" max="2" value="0" step="1" oninput="updateSliderLabels()">
       <div class="sliderRange"><span>Weak</span><span>Perfect</span><span>Muddy/Heavy</span></div>
-      <button class="btn secondary" id="logBtn" onclick="logBrew()" style="margin-top:20px;">Log this brew</button>
+
+      <button class="btn secondary" id="logBtn" onclick="logBrew()" style="margin-top:24px;">Log this brew</button>
     </div>
+
     <button class="btn" onclick="startTimer()">▶ Simple brew timer</button>
   </section>
-  <section id="timer" class="screen"><button class="back" onclick="show('result')">‹ Recipe</button><div class="card"><div class="eyebrow">Brew timer</div><div class="h1" id="timerMethod">Ready?</div><div class="timer" id="clock">00:00</div><button class="btn" id="timerBtn" onclick="toggleTimer()">Start</button></div></section>
-  <section id="journal" class="screen"><button class="back" onclick="show('home')">‹ Brewers</button><div class="hero"><div class="eyebrow">Brew journal</div><div class="h1">Recent brews</div></div><div id="logList"></div><button class="btn secondary" onclick="exportLog()">Copy backup</button></section>
-  <section id="beans" class="screen"><button class="back" onclick="show('home')">‹ Brewers</button><div class="hero"><div class="eyebrow">Coffee Library</div><div class="h1">Your Beans</div></div><button class="btn" onclick="showAddBean()">+ Add a New Coffee</button><div class="label" style="margin-top:20px;">Active</div><div id="activeBeanList"></div><div class="label" style="margin-top:20px;">Archived</div><div id="archivedBeanList"></div></section>
-  <section id="addBean" class="screen"><button class="back" onclick="showBeans()">‹ Cancel</button><div class="card"><h2 style="margin:0 0 16px;">Log new bag</h2><div class="formGroup"><label>Roaster</label><input id="newRoaster" class="formInput" type="text"></div><div class="formGroup"><label>Coffee Name</label><input id="newName" class="formInput" type="text"></div><div class="formGroup"><label>Roast Level</label><select id="newRoast" class="formInput"><option value="light">Light</option><option value="medium" selected>Medium</option><option value="dark">Dark</option></select></div><div class="formGroup"><label>Roast Date</label><input id="newDate" class="formInput" type="date"></div><button class="btn" onclick="saveNewBean()">Save Coffee</button></div></div></section>
-  <section id="settings" class="screen"><button class="back" onclick="show('home')">‹ Save</button><div class="hero"><div class="eyebrow">Config</div><div class="h1">My Brewers</div></div><div class="card"><div id="settingsList"></div></div></section>
+
+  <section id="timer" class="screen">
+    <button class="back" onclick="show('result')">‹ Recipe</button>
+    <div class="card">
+      <div class="eyebrow">Brew timer</div>
+      <div class="h1" id="timerMethod">Ready?</div>
+      <div class="timer" id="clock">00:00</div>
+      <button class="btn" id="timerBtn" onclick="toggleTimer()">Start</button>
+      <button class="btn secondary" onclick="resetTimer()">Reset</button>
+      <p class="tiny">Simple count-up timer. Follow the brew guide above.</p>
+    </div>
+  </section>
+
+  <section id="journal" class="screen">
+    <button class="back" onclick="show('home')">‹ Brewers</button>
+    <div class="hero">
+      <div class="eyebrow">Brew journal</div>
+      <div class="h1">Your recent brews</div>
+      <div class="sub" id="journalCount"></div>
+    </div>
+    <div id="logList"></div>
+    <button class="btn secondary" onclick="exportLog()">Copy backup</button>
+    <button class="btn secondary" onclick="importLog()">Import backup</button>
+    <p class="tiny">Backups are plain text — paste into Notes, a message to yourself, or another device's import.</p>
+  </section>
+
+  <section id="beans" class="screen">
+    <button class="back" onclick="show('home')">‹ Brewers</button>
+    <div class="hero">
+      <div class="eyebrow">Coffee Library</div>
+      <div class="h1">Your Beans</div>
+      <div class="sub">Track your bags and manage their specific grind offsets.</div>
+    </div>
+    <button class="btn" style="margin-bottom: 20px;" onclick="showAddBean()">+ Add a New Coffee</button>
+    
+    <div class="label" style="margin-top:10px;">Active Bags</div>
+    <div id="activeBeanList" class="beanList"></div>
+    
+    <div class="label" style="margin-top:28px;">Archived</div>
+    <div id="archivedBeanList" class="beanList"></div>
+  </section>
+
+  <section id="addBean" class="screen">
+    <button class="back" onclick="showBeans()">‹ Cancel</button>
+    <div class="card">
+      <h2 style="margin:0 0 16px; font-size:24px; letter-spacing:-0.04em;">Log a new bag</h2>
+      <div class="formGroup">
+        <label>Roaster</label>
+        <input id="newRoaster" class="formInput" type="text" placeholder="e.g. 3fe">
+      </div>
+      <div class="formGroup">
+        <label>Coffee Name</label>
+        <input id="newName" class="formInput" type="text" placeholder="e.g. Kenya Mandela AB">
+      </div>
+      <div class="formGroup">
+        <label>Roast Level</label>
+        <select id="newRoast" class="formInput">
+          <option value="light">Light (Filter)</option>
+          <option value="medium" selected>Medium</option>
+          <option value="dark">Dark (Espresso)</option>
+        </select>
+      </div>
+      <div class="formGroup">
+        <label>Process (Optional)</label>
+        <select id="newProcess" class="formInput">
+          <option value="">Unknown / Blend</option>
+          <option value="washed">Washed</option>
+          <option value="natural">Natural</option>
+          <option value="experimental">Experimental / Honey</option>
+        </select>
+      </div>
+      <div class="formGroup">
+        <label>Roast Date</label>
+        <input id="newDate" class="formInput" type="date">
+      </div>
+      <button class="btn" onclick="saveNewBean()">Save Coffee</button>
+    </div>
+  </section>
+
+  <section id="settings" class="screen">
+    <button class="back" onclick="show('home')">‹ Save & Close</button>
+    <div class="hero">
+      <div class="eyebrow">Configuration</div>
+      <div class="h1">My Brewers</div>
+      <div class="sub">Select the gear you own to clean up your morning grid dashboard view. Unchecked items stay hidden.</div>
+    </div>
+    <div class="card">
+      <div class="label">Select your active devices</div>
+      <div id="settingsList" class="settingsList"></div>
+    </div>
+    <button class="btn" onclick="show('home')">Save Changes</button>
+  </section>
+
+  <div class="footer">Starting points only. Dial in by taste.</div>
 </div>
+
 <script src="recipes.js"></script>
 <script src="app.js"></script>
 </body>
