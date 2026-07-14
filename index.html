@@ -29,6 +29,17 @@
       <div class="h1">What are we brewing today?</div>
       <div class="sub">Tap a brewer. Then adjust the liquid amount, roast, and starting Opus setting.</div>
     </div>
+
+    <div class="card coach" id="insightsCard" style="display:none; margin-bottom: 24px;">
+      <div class="label" style="color: var(--accent);">Learning Engine Insight</div>
+      <p class="coachText" id="insightText"></p>
+      <p class="coachReason" id="insightReason"></p>
+      <div class="coachRow">
+        <span class="confChip">High Confidence</span>
+        <button class="btn coachApply" id="insightApply">Update Baseline</button>
+      </div>
+    </div>
+
     <div class="grid" id="methods"></div>
     <div style="margin-top: 36px; text-align: center;">
       <button class="btn secondary" style="width: auto; padding: 10px 20px; font-size: 15px;" onclick="openSettings()">⚙ Manage Brewers</button>
@@ -56,7 +67,6 @@
       <div class="seg" id="techniqueButtons"></div>
     </div>
 
-    <!-- Phase 4: Smart Bean Selector -->
     <div class="card">
       <div class="label">Coffee Bean</div>
       <select id="coffeeSelect" class="selectInput" onchange="selectCoffee(this.value)"></select>
@@ -112,6 +122,7 @@
         <div class="dialWrap">
           <svg id="opusDial" viewBox="0 0 340 294" role="img" aria-label="Opus grind dial"></svg>
         </div>
+        <div class="microLabel">Micro <span id="microOut">0</span></div>
       </div>
 
       <p class="tiny" id="ratioOut"></p>
@@ -122,7 +133,6 @@
       <div class="steps" id="stepsOut"></div>
     </div>
 
-    <!-- Phase 5: Two-Axis Extraction Sliders -->
     <div class="card">
       <div class="label">How was it? <span style="font-weight:400">(after tasting)</span></div>
       
@@ -173,7 +183,6 @@
     <p class="tiny">Backups are plain text — paste into Notes, a message to yourself, or another device's import.</p>
   </section>
 
-  <!-- Phase 4: Beans Library Screen -->
   <section id="beans" class="screen">
     <button class="back" onclick="show('home')">‹ Brewers</button>
     <div class="hero">
