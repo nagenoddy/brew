@@ -66,10 +66,7 @@ button { cursor: pointer; }
   font-display: swap;
 }
 
-.brand {
-  display: flex;
-  align-items: center;
-}
+.brand { display: flex; align-items: center; }
 
 .brandWord {
   font-family: 'BrewWordmark',-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
@@ -344,8 +341,24 @@ button { cursor: pointer; }
   background: var(--accent2);
   color: var(--bg);
   border-radius: 28px;
-  padding: 20px;
+  padding: 20px 20px 10px;
   margin: 10px 0 14px;
+}
+
+.microLabel {
+  text-align: center;
+  font-size: 11px;
+  color: rgba(247,243,236,0.5);
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-weight: 700;
+  margin-top: -6px;
+  padding-bottom: 10px;
+}
+
+.microLabel span {
+  color: var(--bg);
+  font-size: 13px;
 }
 
 .tiny { font-size: 13px; color: var(--muted); line-height: 1.35; }
@@ -433,7 +446,7 @@ button { cursor: pointer; }
   padding: 30px 10px;
 }
 
-/* ---- coach ---- */
+/* ---- coach & insights ---- */
 .coach {
   border: 1px solid rgba(215,168,110,.5);
   background: rgba(215,168,110,.10);
@@ -696,11 +709,15 @@ input[type=range]::-webkit-slider-runnable-track {
 }
 
 .sliderRange {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
   font-size: 11px;
   color: var(--muted);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
+
+.sliderRange span:nth-child(1) { text-align: left; }
+.sliderRange span:nth-child(2) { text-align: center; }
+.sliderRange span:nth-child(3) { text-align: right; }
